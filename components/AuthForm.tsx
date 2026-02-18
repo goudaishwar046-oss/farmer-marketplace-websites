@@ -75,18 +75,32 @@ export function AuthForm({ type, userType }: AuthFormProps) {
           })
         } else {
           // For consumer and delivery roles we just create an auth user.
-          await signUp(formData.email, formData.password, userType, {})
+          await signUp(formData.email, formData.password, userType, {
+            phone: formData.phone,
+          })
         }
+        
+        // After signup, wait a moment for auth state to update
+        await new Promise(resolve => setTimeout(resolve, 1000))
       } else {
         await signIn(formData.email, formData.password)
+        // After signin, wait a moment for auth state to update
+        await new Promise(resolve => setTimeout(resolve, 1000))
       }
 
-      // Redirect based on selected role
-      if (userType === 'farmer') router.push('/farmer/dashboard')
-      else if (userType === 'delivery') router.push('/delivery')
-      else router.push('/consumer')
+      // Redirect - will be determined by the page component reading auth context
+      router.push('/dashboard-redirect')
     } catch (err: any) {
-      setError(err.message || 'An error occurred')
+      const errorMsg = err.message || 'An error occurred'
+      
+      // Better error messages
+      if (errorMsg.includes('already exist') || errorMsg.includes('duplicate') || errorMsg.includes('unique')) {
+        setError('This email is already registered. Please login instead.')
+      } else if (errorMsg.includes('Invalid login credentials')) {
+        setError('Email or password is incorrect. Please try again.')
+      } else {
+        setError(errorMsg)
+      }
     } finally {
       setLoading(false)
     }

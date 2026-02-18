@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
 import { AuthForm } from '@/components/AuthForm'
 import { Button } from '@/components/ui/button'
 import { Navigation } from '@/components/Navigation'
@@ -10,17 +11,25 @@ import { Suspense } from 'react'
 import Loading from './loading'
 
 export default function AuthPage() {
-  const searchParams = useSearchParams()
-  const [authType, setAuthType] = useState<'login' | 'signup'>(
-    (searchParams.get('type') as any) === 'farmer' ? 'signup' : 'login'
-  )
-  const [userType, setUserType] = useState<'farmer' | 'consumer' | 'delivery'>(
-    (searchParams.get('type') as any) === 'farmer'
-      ? 'farmer'
-      : (searchParams.get('type') as any) === 'delivery'
-      ? 'delivery'
-      : 'consumer'
-  )
+  const router = useRouter()
+  const { user, loading } = useAuth()
+  const [authType, setAuthType] = useState<'login' | 'signup'>('login')
+  const [userType, setUserType] = useState<'farmer' | 'consumer' | 'delivery'>('consumer')
+
+  // If user is already logged in, redirect to dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/dashboard-redirect')
+    }
+  }, [user, loading, router])
+
+  if (!loading && user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Redirecting...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

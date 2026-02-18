@@ -27,13 +27,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null)
 
         if (session?.user) {
+          // Check what type of profile the user has
           const { data: farmer } = await supabase
             .from('farmers')
             .select('id')
             .eq('user_id', session.user.id)
             .single()
 
-          setUserType(farmer ? 'farmer' : 'consumer')
+          if (farmer) {
+            setUserType('farmer')
+          } else {
+            // Check if delivery
+            const { data: delivery } = await supabase
+              .from('delivery_boys')
+              .select('id')
+              .eq('user_id', session.user.id)
+              .single()
+
+            if (delivery) {
+              setUserType('delivery')
+            } else {
+              // Default to consumer
+              setUserType('consumer')
+            }
+          }
         }
       } catch (error) {
         console.error('Auth check error:', error)
@@ -48,13 +65,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null)
 
       if (session?.user) {
+        // Check what type of profile the user has
         const { data: farmer } = await supabase
           .from('farmers')
           .select('id')
           .eq('user_id', session.user.id)
           .single()
 
-        setUserType(farmer ? 'farmer' : 'consumer')
+        if (farmer) {
+          setUserType('farmer')
+        } else {
+          const { data: delivery } = await supabase
+            .from('delivery_boys')
+            .select('id')
+            .eq('user_id', session.user.id)
+            .single()
+
+          if (delivery) {
+            setUserType('delivery')
+          } else {
+            setUserType('consumer')
+          }
+        }
       } else {
         setUserType(null)
       }
@@ -88,6 +120,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (err: any) {
       console.error('SignUp failed:', err)
+
+      const errorMsg = String(err?.message || err).toLowerCase()
+
+      // Check for duplicate email/already exists
+      if (errorMsg.includes('already exist') || errorMsg.includes('duplicate') || errorMsg.includes('user already registered')) {
+        throw new Error('This email is already registered. Please login instead.')
+      }
 
       // If network / CORS issue (e.g., 'Failed to fetch'), try server-side signup endpoint
       if (err && (err.message === 'Failed to fetch' || String(err).includes('Failed to fetch'))) {
@@ -138,7 +177,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       ])
 
-      if (userError) throw userError
+      if (userError) {
+        console.error('User insert error:', userError)
+        throw new Error('Failed to create user profile. ' + userError.message)
+      }
 
       if (userType === 'farmer') {
         const { error: farmerError } = await supabase.from('farmers').insert([
@@ -158,7 +200,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           },
         ])
 
-        if (farmerError) throw farmerError
+        if (farmerError) {
+          console.error('Farmer insert error:', farmerError)
+          throw new Error('Failed to create farmer profile. ' + farmerError.message)
+        }
       }
 
       if (userType === 'delivery') {
@@ -171,7 +216,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           },
         ])
 
-        if (deliveryError) throw deliveryError
+        if (deliveryError) {
+          console.error('Delivery insert error:', deliveryError)
+          throw new Error('Failed to create delivery profile. ' + deliveryError.message)
+        }
       }
     }
   }
