@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { AuthProvider } from '@/context/AuthContext'
 import { LanguageProvider } from '@/context/LanguageContext'
+import { ServiceWorkerRegister } from './service-worker-register'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -13,6 +14,15 @@ export const metadata: Metadata = {
   title: 'FarmBridge - Local Farmer Marketplace',
   description: 'Connect with local farmers and get fresh produce delivered to your doorstep',
   generator: 'v0.app',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'FarmBridge',
+  },
+  formatDetection: {
+    telephone: false,
+  },
   icons: {
     icon: [
       {
@@ -40,6 +50,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans antialiased`}>
+        <ServiceWorkerRegister />
         <AuthProvider>
           <LanguageProvider>
             {children}
