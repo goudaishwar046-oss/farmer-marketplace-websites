@@ -177,10 +177,10 @@ CREATE POLICY "Consumers can leave reviews" ON reviews
   FOR INSERT WITH CHECK (consumer_id = auth.uid()::uuid);
 
 -- Create indexes for performance
-CREATE INDEX idx_farmers_user_id ON farmers(user_id);
-CREATE INDEX idx_products_farmer_id ON products(farmer_id);
-CREATE INDEX idx_products_expiry ON products(expiry_date);
-CREATE INDEX idx_orders_consumer_id ON orders(consumer_id);
-CREATE INDEX idx_orders_farmer_id ON orders(farmer_id);
-CREATE INDEX idx_orders_status ON orders(order_status);
-CREATE INDEX idx_reviews_farmer_id ON reviews(farmer_id);
+CREATE INDEX IF NOT EXISTS idx_farmers_user_id ON farmers(user_id);
+CREATE INDEX IF NOT EXISTS idx_products_farmer_id ON products(farmer_id);
+CREATE INDEX IF NOT EXISTS idx_products_expiry ON products(expiry_date);
+CREATE INDEX IF NOT EXISTS idx_orders_consumer_id ON orders(consumer_id);
+CREATE INDEX IF NOT EXISTS idx_orders_farmer_id ON orders(farmer_id);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(order_status);
+CREATE INDEX IF NOT EXISTS idx_reviews_farmer_id ON reviews(farmer_id);
