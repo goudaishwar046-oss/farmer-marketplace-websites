@@ -5,18 +5,19 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-export type UserType = 'farmer' | 'consumer'
+export type UserType = 'farmer' | 'consumer' | 'delivery'
 
 export interface Farmer {
   id: string
   user_id: string
   business_name: string
+  description?: string
   latitude: number
   longitude: number
-  phone: string
+  phone?: string
   address: string
-  city: string
-  state: string
+  city?: string
+  state?: string
   verified: boolean
   rating: number
   total_reviews: number

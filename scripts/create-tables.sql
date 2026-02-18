@@ -2,8 +2,8 @@
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  user_type TEXT NOT NULL CHECK (user_type IN ('farmer', 'consumer')),
+  password_hash TEXT,
+  user_type TEXT NOT NULL CHECK (user_type IN ('farmer', 'consumer', 'delivery')),
   full_name TEXT NOT NULL,
   phone TEXT,
   avatar_url TEXT,
@@ -15,14 +15,28 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS farmers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-  farm_name TEXT NOT NULL,
+  business_name TEXT NOT NULL,
   description TEXT,
   latitude DECIMAL(10, 8) NOT NULL,
   longitude DECIMAL(11, 8) NOT NULL,
+  phone TEXT,
   address TEXT NOT NULL,
-  rating DECIMAL(3, 2) DEFAULT 5.0,
-  reviews_count INT DEFAULT 0,
-  is_verified BOOLEAN DEFAULT FALSE,
+  city TEXT,
+  state TEXT,
+  rating DECIMAL(3, 2) DEFAULT 0,
+  total_reviews INT DEFAULT 0,
+  verified BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Create delivery_boys table (extends users)
+CREATE TABLE IF NOT EXISTS delivery_boys (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  phone TEXT,
+  vehicle_type TEXT,
+  is_available BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -86,6 +100,7 @@ ALTER TABLE farmers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE delivery_boys ENABLE ROW LEVEL SECURITY;
 
 -- Create RLS policies for users
 CREATE POLICY "Users can view their own profile" ON users
@@ -99,6 +114,13 @@ CREATE POLICY "Anyone can view farmer profiles" ON farmers
   FOR SELECT USING (TRUE);
 
 CREATE POLICY "Farmers can update their own profile" ON farmers
+  FOR UPDATE USING (auth.uid()::text = user_id::text);
+
+-- RLS for delivery_boys
+CREATE POLICY "Anyone can view delivery profiles" ON delivery_boys
+  FOR SELECT USING (TRUE);
+
+CREATE POLICY "Delivery riders can update their own profile" ON delivery_boys
   FOR UPDATE USING (auth.uid()::text = user_id::text);
 
 -- Create RLS policies for products

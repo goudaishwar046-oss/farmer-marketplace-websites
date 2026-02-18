@@ -14,25 +14,25 @@ export async function GET(request: Request) {
     const { error: deleteError, data: deletedData } = await supabase
       .from('products')
       .delete()
-      .lt('expiration_date', today)
+      .lt('expiry_date', today)
 
     if (deleteError) throw deleteError
+
+    // Ensure we have a typed array to work with
+    const deleted = (deletedData as any[] | null) || []
 
     // Update orders for deleted products
     const { error: updateError } = await supabase
       .from('orders')
       .update({ status: 'cancelled' })
-      .in(
-        'product_id',
-        deletedData?.map((d: any) => d.id) || []
-      )
+      .in('product_id', deleted.map((d: any) => d.id) || [])
       .in('status', ['pending', 'confirmed'])
 
     if (updateError) throw updateError
 
     return NextResponse.json({
       success: true,
-      deletedProducts: deletedData?.length || 0,
+      deletedProducts: deleted.length || 0,
       message: 'Cleanup completed successfully',
     })
   } catch (error: any) {

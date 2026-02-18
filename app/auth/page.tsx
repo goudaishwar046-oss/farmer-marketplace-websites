@@ -14,8 +14,12 @@ export default function AuthPage() {
   const [authType, setAuthType] = useState<'login' | 'signup'>(
     (searchParams.get('type') as any) === 'farmer' ? 'signup' : 'login'
   )
-  const [userType, setUserType] = useState<'farmer' | 'consumer'>(
-    (searchParams.get('type') as any) === 'farmer' ? 'farmer' : 'consumer'
+  const [userType, setUserType] = useState<'farmer' | 'consumer' | 'delivery'>(
+    (searchParams.get('type') as any) === 'farmer'
+      ? 'farmer'
+      : (searchParams.get('type') as any) === 'delivery'
+      ? 'delivery'
+      : 'consumer'
   )
 
   return (
@@ -85,6 +89,18 @@ export default function AuthPage() {
                     <p className="text-sm text-gray-600">
                       Sell your products directly to consumers
                     </p>
+                  </button>
+
+                  <button
+                    onClick={() => setUserType('delivery')}
+                    className={`w-full p-4 rounded-lg border-2 transition ${
+                      userType === 'delivery'
+                        ? 'border-green-600 bg-green-50'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
+                  >
+                    <h3 className="font-semibold mb-2">🚚 I'm a Delivery Rider</h3>
+                    <p className="text-sm text-gray-600">Accept and deliver orders</p>
                   </button>
                 </div>
               </div>

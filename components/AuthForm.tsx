@@ -13,7 +13,7 @@ import { Loader2 } from 'lucide-react'
 
 interface AuthFormProps {
   type: 'login' | 'signup'
-  userType: 'farmer' | 'consumer'
+  userType: 'farmer' | 'consumer' | 'delivery'
 }
 
 export function AuthForm({ type, userType }: AuthFormProps) {
@@ -74,13 +74,17 @@ export function AuthForm({ type, userType }: AuthFormProps) {
             longitude: location.lng,
           })
         } else {
-          await signUp(formData.email, formData.password, 'consumer', {})
+          // For consumer and delivery roles we just create an auth user.
+          await signUp(formData.email, formData.password, userType, {})
         }
       } else {
         await signIn(formData.email, formData.password)
       }
 
-      router.push(userType === 'farmer' ? '/farmer/dashboard' : '/consumer')
+      // Redirect based on selected role
+      if (userType === 'farmer') router.push('/farmer/dashboard')
+      else if (userType === 'delivery') router.push('/delivery')
+      else router.push('/consumer')
     } catch (err: any) {
       setError(err.message || 'An error occurred')
     } finally {
@@ -95,6 +99,8 @@ export function AuthForm({ type, userType }: AuthFormProps) {
           {type === 'login'
             ? userType === 'farmer'
               ? translate('auth.loginFarmer')
+              : userType === 'delivery'
+              ? 'Delivery Login'
               : translate('auth.loginConsumer')
             : translate('auth.signup')}
         </CardTitle>
