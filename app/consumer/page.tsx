@@ -61,10 +61,15 @@ export default function ConsumerMarketplace() {
           farmer:farmers(*)
         `
         )
-        .gt('expiration_date', new Date().toISOString())
+        .gt('expiry_date', new Date().toISOString())
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase products error:', error)
+        setProducts([])
+        setFilteredProducts([])
+        return
+      }
 
       setProducts(data || [])
       setFilteredProducts(data || [])

@@ -50,7 +50,11 @@ export default function MapPage() {
         .eq('verified', true)
         .order('rating', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase farmers error:', error)
+        setFarmers([])
+        return
+      }
 
       setFarmers(data || [])
     } catch (error) {
