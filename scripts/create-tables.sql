@@ -104,24 +104,24 @@ ALTER TABLE delivery_boys ENABLE ROW LEVEL SECURITY;
 
 -- Create RLS policies for users
 CREATE POLICY "Users can view their own profile" ON users
-  FOR SELECT USING (auth.uid()::text = id::text OR auth.uid() IS NULL);
+  FOR SELECT USING (auth.uid() = id OR auth.uid() IS NULL);
 
 CREATE POLICY "Users can update their own profile" ON users
-  FOR UPDATE USING (auth.uid()::text = id::text);
+  FOR UPDATE USING (auth.uid() = id);
 
 -- Create RLS policies for farmers
 CREATE POLICY "Anyone can view farmer profiles" ON farmers
   FOR SELECT USING (TRUE);
 
 CREATE POLICY "Farmers can update their own profile" ON farmers
-  FOR UPDATE USING (auth.uid()::text = user_id::text);
+  FOR UPDATE USING (auth.uid() = user_id);
 
 -- RLS for delivery_boys
 CREATE POLICY "Anyone can view delivery profiles" ON delivery_boys
   FOR SELECT USING (TRUE);
 
 CREATE POLICY "Delivery riders can update their own profile" ON delivery_boys
-  FOR UPDATE USING (auth.uid()::text = user_id::text);
+  FOR UPDATE USING (auth.uid() = user_id);
 
 -- Create RLS policies for products
 CREATE POLICY "Anyone can view active products" ON products
@@ -152,6 +152,13 @@ CREATE POLICY "Users can update their orders" ON orders
     consumer_id = auth.uid()::uuid OR 
     farmer_id IN (SELECT id FROM farmers WHERE user_id = auth.uid()::uuid)
   );
+
+-- Create RLS policies for reviews
+CREATE POLICY "Anyone can view reviews" ON reviews
+  FOR SELECT USING (TRUE);
+
+CREATE POLICY "Consumers can leave reviews" ON reviews
+  FOR INSERT WITH CHECK (consumer_id = auth.uid()::uuid);
 
 -- Create indexes for performance
 CREATE INDEX idx_farmers_user_id ON farmers(user_id);
