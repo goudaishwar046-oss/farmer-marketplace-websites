@@ -102,6 +102,22 @@ ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE delivery_boys ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies (if any) to allow re-running this script
+DROP POLICY IF EXISTS "Users can view their own profile" ON users;
+DROP POLICY IF EXISTS "Users can update their own profile" ON users;
+DROP POLICY IF EXISTS "Anyone can view farmer profiles" ON farmers;
+DROP POLICY IF EXISTS "Farmers can update their own profile" ON farmers;
+DROP POLICY IF EXISTS "Anyone can view delivery profiles" ON delivery_boys;
+DROP POLICY IF EXISTS "Delivery riders can update their own profile" ON delivery_boys;
+DROP POLICY IF EXISTS "Anyone can view active products" ON products;
+DROP POLICY IF EXISTS "Farmers can insert their own products" ON products;
+DROP POLICY IF EXISTS "Farmers can update their own products" ON products;
+DROP POLICY IF EXISTS "Users can view their own orders" ON orders;
+DROP POLICY IF EXISTS "Consumers can create orders" ON orders;
+DROP POLICY IF EXISTS "Users can update their orders" ON orders;
+DROP POLICY IF EXISTS "Anyone can view reviews" ON reviews;
+DROP POLICY IF EXISTS "Consumers can leave reviews" ON reviews;
+
 -- Create RLS policies for users
 CREATE POLICY "Users can view their own profile" ON users
   FOR SELECT USING (auth.uid() = id OR auth.uid() IS NULL);
