@@ -32,92 +32,131 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation />
+    <div
+      className="min-h-screen bg-gray-50"
+      style={{
+        backgroundImage: 'url(https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1200&h=800&fit=crop)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+      }}
+    >
+      <div className="min-h-screen bg-black bg-opacity-50">
+        <Navigation />
 
-      <Suspense fallback={<Loading />}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid md:grid-cols-2 gap-12 items-start">
-            {/* Auth Form */}
-            <div>
-              <AuthForm type={authType} userType={userType} />
+        <Suspense fallback={<Loading />}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="grid md:grid-cols-2 gap-12 items-start">
+              {/* Auth Form */}
+              <div className="bg-white bg-opacity-95 p-8 rounded-xl shadow-xl">
+                <AuthForm type={authType} userType={userType} />
 
-              <div className="mt-6 text-center">
-                {authType === 'login' ? (
-                  <p className="text-gray-600">
-                    Don't have an account?{' '}
-                    <button
-                      onClick={() => setAuthType('signup')}
-                      className="text-green-600 font-semibold hover:underline"
-                    >
-                      Sign Up
-                    </button>
-                  </p>
-                ) : (
-                  <p className="text-gray-600">
-                    Already have an account?{' '}
-                    <button
-                      onClick={() => setAuthType('login')}
-                      className="text-green-600 font-semibold hover:underline"
-                    >
-                      Log In
-                    </button>
-                  </p>
-                )}
+                <div className="mt-6 text-center">
+                  {authType === 'login' ? (
+                    <p className="text-gray-600">
+                      Don't have an account?{' '}
+                      <button
+                        onClick={() => setAuthType('signup')}
+                        className="text-green-600 font-semibold hover:underline"
+                      >
+                        Sign Up
+                      </button>
+                    </p>
+                  ) : (
+                    <p className="text-gray-600">
+                      Already have an account?{' '}
+                      <button
+                        onClick={() => setAuthType('login')}
+                        className="text-green-600 font-semibold hover:underline"
+                      >
+                        Log In
+                      </button>
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
 
             {/* User Type Selection */}
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold mb-4">Choose Your Role</h2>
+                <h2 className="text-3xl font-bold mb-4 text-white">Choose Your Role</h2>
                 <div className="space-y-3">
                   <button
                     onClick={() => setUserType('consumer')}
-                    className={`w-full p-4 rounded-lg border-2 transition ${
+                    className={`w-full rounded-lg border-2 transition overflow-hidden ${
                       userType === 'consumer'
-                        ? 'border-green-600 bg-green-50'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
+                        ? 'border-green-400 shadow-lg shadow-green-400'
+                        : 'border-transparent'
                     }`}
                   >
-                    <h3 className="font-semibold mb-2">🛒 I'm a Consumer</h3>
-                    <p className="text-sm text-gray-600">
-                      Browse and buy fresh produce from local farmers
-                    </p>
+                    <div className="relative">
+                      <img
+                        src="https://images.unsplash.com/photo-1488459716781-8f52f7f3bef0?w=400&h=200&fit=crop"
+                        alt="Consumer"
+                        className="w-full h-32 object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+                      <div className="absolute inset-0 flex flex-col justify-center px-4">
+                        <h3 className="font-semibold mb-1 text-white text-lg">🛒 I'm a Consumer</h3>
+                        <p className="text-sm text-gray-200">
+                          Browse and buy fresh produce
+                        </p>
+                      </div>
+                    </div>
                   </button>
 
                   <button
                     onClick={() => setUserType('farmer')}
-                    className={`w-full p-4 rounded-lg border-2 transition ${
+                    className={`w-full rounded-lg border-2 transition overflow-hidden ${
                       userType === 'farmer'
-                        ? 'border-green-600 bg-green-50'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
+                        ? 'border-green-400 shadow-lg shadow-green-400'
+                        : 'border-transparent'
                     }`}
                   >
-                    <h3 className="font-semibold mb-2">🌾 I'm a Farmer</h3>
-                    <p className="text-sm text-gray-600">
-                      Sell your products directly to consumers
-                    </p>
+                    <div className="relative">
+                      <img
+                        src="https://images.unsplash.com/photo-1625246333195-78d9c38ad576?w=400&h=200&fit=crop"
+                        alt="Farmer"
+                        className="w-full h-32 object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+                      <div className="absolute inset-0 flex flex-col justify-center px-4">
+                        <h3 className="font-semibold mb-1 text-white text-lg">🌾 I'm a Farmer</h3>
+                        <p className="text-sm text-gray-200">
+                          Sell your products directly
+                        </p>
+                      </div>
+                    </div>
                   </button>
 
                   <button
                     onClick={() => setUserType('delivery')}
-                    className={`w-full p-4 rounded-lg border-2 transition ${
+                    className={`w-full rounded-lg border-2 transition overflow-hidden ${
                       userType === 'delivery'
-                        ? 'border-green-600 bg-green-50'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
+                        ? 'border-green-400 shadow-lg shadow-green-400'
+                        : 'border-transparent'
                     }`}
                   >
-                    <h3 className="font-semibold mb-2">🚚 I'm a Delivery Rider</h3>
-                    <p className="text-sm text-gray-600">Accept and deliver orders</p>
+                    <div className="relative">
+                      <img
+                        src="https://images.unsplash.com/photo-1633117064589-cf94d64b2f01?w=400&h=200&fit=crop"
+                        alt="Delivery"
+                        className="w-full h-32 object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+                      <div className="absolute inset-0 flex flex-col justify-center px-4">
+                        <h3 className="font-semibold mb-1 text-white text-lg">🚚 I'm a Delivery Rider</h3>
+                        <p className="text-sm text-gray-200">Accept and deliver orders</p>
+                      </div>
+                    </div>
                   </button>
                 </div>
               </div>
 
               {/* Info Card */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="font-semibold text-blue-900 mb-2">Why Choose FarmBridge?</h3>
-                <ul className="text-sm text-blue-800 space-y-1">
+              <div className="bg-gradient-to-br from-blue-900 to-blue-800 border border-blue-400 rounded-lg p-6 text-white shadow-xl">
+                <h3 className="font-semibold text-white mb-3 text-lg">✨ Why Choose FarmBridge?</h3>
+                <ul className="text-sm text-blue-100 space-y-2">
                   <li>✓ Secure authentication with location verification</li>
                   <li>✓ Multi-language support (5 languages)</li>
                   <li>✓ Automatic product expiry management</li>
@@ -127,8 +166,9 @@ export default function AuthPage() {
               </div>
             </div>
           </div>
-        </div>
-      </Suspense>
+          </div>
+        </Suspense>
+      </div>
     </div>
   )
 }

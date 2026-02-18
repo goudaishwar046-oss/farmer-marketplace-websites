@@ -214,27 +214,39 @@ export default function DeliveryDashboard() {
 
           {farmers.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {farmers.map((farmer) => (
-                <Card key={farmer.id} className="border-l-4 border-l-green-500 hover:shadow-lg transition">
-                  <CardContent className="pt-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-3">{farmer.business_name}</h3>
-                    <div className="space-y-2 text-sm text-gray-600">
-                      <div className="flex items-start gap-2">
-                        <MapPin className="w-4 h-4 mt-0.5 text-green-600 flex-shrink-0" />
-                        <div>
-                          <p>{farmer.address}</p>
-                          <p className="text-xs">
-                            {farmer.city}, {farmer.state}
-                          </p>
-                        </div>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        📌 Lat: {farmer.latitude?.toFixed(4)}, Lng: {farmer.longitude?.toFixed(4)}
-                      </p>
+              {farmers.map((farmer) => {
+                const farmImages = [
+                  'https://images.unsplash.com/photo-1500382017468-7049bae30402?w=400&h=250&fit=crop',
+                  'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=400&h=250&fit=crop',
+                  'https://images.unsplash.com/photo-1488459716781-8f52f7f3bef0?w=400&h=250&fit=crop',
+                  'https://images.unsplash.com/photo-1625246333195-78d9c38ad576?w=400&h=250&fit=crop',
+                ]
+                const imageIndex = farmer.id.charCodeAt(0) % farmImages.length
+                return (
+                  <Card key={farmer.id} className="border-l-4 border-l-green-500 hover:shadow-lg transition overflow-hidden">
+                    <div className="w-full h-40 overflow-hidden">
+                      <img src={farmImages[imageIndex]} alt={farmer.business_name} className="w-full h-full object-cover" />
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    <CardContent className="pt-6">
+                      <h3 className="text-xl font-bold text-gray-900 mb-3">{farmer.business_name}</h3>
+                      <div className="space-y-2 text-sm text-gray-600">
+                        <div className="flex items-start gap-2">
+                          <MapPin className="w-4 h-4 mt-0.5 text-green-600 flex-shrink-0" />
+                          <div>
+                            <p>{farmer.address}</p>
+                            <p className="text-xs">
+                              {farmer.city}, {farmer.state}
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          📌 Lat: {farmer.latitude?.toFixed(4)}, Lng: {farmer.longitude?.toFixed(4)}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           ) : (
             <Card className="bg-gray-50">

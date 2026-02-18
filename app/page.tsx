@@ -15,27 +15,56 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-24">
-        <div className="text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Fresh Produce,{' '}
-            <span className="text-green-600">Direct from Farmers</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            FarmBridge connects consumers with local farmers, ensuring fresh, authentic products
-            at fair prices. Browse nearby farms, place orders, and support local agriculture.
-          </p>
+        <div className="grid md:grid-cols-2 gap-8 items-center">
+          <div>
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+              Fresh Produce,{' '}
+              <span className="text-green-600">Direct from Farmers</span>
+            </h1>
+            <p className="text-xl text-gray-600 mb-8">
+              FarmBridge connects consumers with local farmers, ensuring fresh, authentic products
+              at fair prices. Browse nearby farms, place orders, and support local agriculture.
+            </p>
 
-          <div className="flex gap-4 justify-center flex-wrap">
+            <div className="flex gap-4 flex-wrap">
             <Link href="/auth?type=consumer">
               <Button size="lg" className="bg-green-600 hover:bg-green-700">
                 Shop as Consumer
               </Button>
             </Link>
-            <Link href="/auth?type=farmer">
-              <Button size="lg" variant="outline">
-                Sell as Farmer
-              </Button>
-            </Link>
+              <Link href="/auth?type=farmer">
+                <Button size="lg" variant="outline">
+                  Sell as Farmer
+                </Button>
+              </Link>
+            </div>
+          </div>
+          <div className="hidden md:block">
+            <img
+              src="https://images.unsplash.com/photo-1488459716781-8f52f7f3bef0?w=600&h=500&fit=crop"
+              alt="Fresh farmers market"
+              className="rounded-lg shadow-xl w-full h-96 object-cover"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof Section */}
+      <section className="bg-gray-900 text-white py-12 my-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-3 gap-8 text-center">
+            <div>
+              <div className="text-4xl font-bold text-green-400 mb-2">500+</div>
+              <p className="text-gray-300">Active Farmers</p>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-green-400 mb-2">10,000+</div>
+              <p className="text-gray-300">Happy Consumers</p>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-green-400 mb-2">24/7</div>
+              <p className="text-gray-300">Fast Delivery</p>
+            </div>
           </div>
         </div>
       </section>
@@ -45,7 +74,8 @@ export default function Home() {
         <h2 className="text-3xl font-bold text-center mb-12">Why Choose FarmBridge?</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="text-center">
-            <div className="flex justify-center mb-4">
+            <img src="https://images.unsplash.com/photo-1464226184837-280ecc440399?w=300&h=200&fit=crop" alt="Fresh organic" className="w-full h-40 object-cover rounded-lg mb-4" />
+            <div className="flex justify-center mb-2">
               <Leaf className="w-12 h-12 text-green-600" />
             </div>
             <h3 className="font-semibold mb-2">Fresh & Organic</h3>
@@ -55,7 +85,8 @@ export default function Home() {
           </div>
 
           <div className="text-center">
-            <div className="flex justify-center mb-4">
+            <img src="https://images.unsplash.com/photo-1586771107919-12ac45474938?w=300&h=200&fit=crop" alt="Farm location" className="w-full h-40 object-cover rounded-lg mb-4" />
+            <div className="flex justify-center mb-2">
               <MapPin className="w-12 h-12 text-green-600" />
             </div>
             <h3 className="font-semibold mb-2">Nearby Farmers</h3>
@@ -65,7 +96,8 @@ export default function Home() {
           </div>
 
           <div className="text-center">
-            <div className="flex justify-center mb-4">
+            <img src="https://images.unsplash.com/photo-1557804506-669714d2e9d8?w=300&h=200&fit=crop" alt="Fair prices" className="w-full h-40 object-cover rounded-lg mb-4" />
+            <div className="flex justify-center mb-2">
               <Users className="w-12 h-12 text-green-600" />
             </div>
             <h3 className="font-semibold mb-2">Fair Prices</h3>
@@ -75,7 +107,8 @@ export default function Home() {
           </div>
 
           <div className="text-center">
-            <div className="flex justify-center mb-4">
+            <img src="https://images.unsplash.com/photo-1633117064589-cf94d64b2f01?w=300&h=200&fit=crop" alt="Fast delivery" className="w-full h-40 object-cover rounded-lg mb-4" />
+            <div className="flex justify-center mb-2">
               <Truck className="w-12 h-12 text-green-600" />
             </div>
             <h3 className="font-semibold mb-2">Easy Ordering</h3>

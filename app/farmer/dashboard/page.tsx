@@ -211,37 +211,64 @@ export default function FarmerDashboard() {
 
           {products.length > 0 ? (
             <div className="space-y-4">
-              {products.map((product) => (
-                <Card
-                  key={product.id}
-                  className={`${
-                    product.is_expired ? 'border-red-300 bg-red-50' : 'border-l-4 border-l-green-500'
-                  }`}
-                >
-                  <CardContent className="pt-6">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-900">{product.name}</h3>
-                        <div className="flex gap-6 mt-2 text-sm text-gray-600">
-                          <span>💰 ₹{product.price} per {product.unit}</span>
-                          <span>📦 {product.quantity} units available</span>
-                          <span>📅 Expires: {new Date(product.expiry_date).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        {product.is_expired ? (
-                          <div className="flex items-center gap-1 text-red-600 font-bold">
-                            <AlertCircle className="w-4 h-4" />
-                            EXPIRED
+              {products.map((product) => {
+                // Product images based on product name/category
+                const productImages: { [key: string]: string } = {
+                  tomato: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&h=200&fit=crop',
+                  potato: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=300&h=200&fit=crop',
+                  apple: 'https://images.unsplash.com/photo-1560806674-104da7f1c787?w=300&h=200&fit=crop',
+                  carrot: 'https://images.unsplash.com/photo-1584622446473-502ec97eae08?w=300&h=200&fit=crop',
+                  broccoli: 'https://images.unsplash.com/photo-1585518419759-57f837becbeb?w=300&h=200&fit=crop',
+                  spinach: 'https://images.unsplash.com/photo-1631193991062-f8cbfcb8b5da?w=300&h=200&fit=crop',
+                  lettuce: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=300&h=200&fit=crop',
+                  organic: 'https://images.unsplash.com/photo-1488459716781-8f52f7f3bef0?w=300&h=200&fit=crop',
+                }
+
+                const productNameLower = product.name.toLowerCase()
+                const productImage =
+                  productImages[productNameLower] ||
+                  productImages[Object.keys(productImages).find((key) => productNameLower.includes(key)) || 'organic'] ||
+                  'https://images.unsplash.com/photo-1488459716781-8f52f7f3bef0?w=300&h=200&fit=crop'
+
+                return (
+                  <Card
+                    key={product.id}
+                    className={`overflow-hidden ${
+                      product.is_expired ? 'border-red-300 bg-red-50' : 'border-l-4 border-l-green-500'
+                    }`}
+                  >
+                    <div className="flex">
+                      <img
+                        src={productImage}
+                        alt={product.name}
+                        className="w-40 h-32 object-cover"
+                      />
+                      <CardContent className="pt-6 flex-1">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h3 className="text-xl font-bold text-gray-900">{product.name}</h3>
+                            <div className="flex gap-6 mt-2 text-sm text-gray-600">
+                              <span>💰 ₹{product.price} per {product.unit}</span>
+                              <span>📦 {product.quantity} units available</span>
+                              <span>📅 Expires: {new Date(product.expiry_date).toLocaleDateString()}</span>
+                            </div>
                           </div>
-                        ) : (
-                          <div className="text-green-600 font-bold">✓ Active</div>
-                        )}
-                      </div>
+                          <div className="text-right">
+                            {product.is_expired ? (
+                              <div className="flex items-center gap-1 text-red-600 font-bold">
+                                <AlertCircle className="w-4 h-4" />
+                                EXPIRED
+                              </div>
+                            ) : (
+                              <div className="text-green-600 font-bold">✓ Active</div>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  </Card>
+                )
+              })}
             </div>
           ) : (
             <Card className="bg-gray-50">

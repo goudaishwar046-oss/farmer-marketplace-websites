@@ -268,8 +268,30 @@ function FarmerCard({
   farmer: Farmer
   deliveryOption: 'self' | 'delivery' | 'direct'
 }) {
+  // Array of farm/agricultural images
+  const farmImages = [
+    'https://images.unsplash.com/photo-1500382017468-7049bae30402?w=400&h=250&fit=crop',
+    'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=400&h=250&fit=crop',
+    'https://images.unsplash.com/photo-1488459716781-8f52f7f3bef0?w=400&h=250&fit=crop',
+    'https://images.unsplash.com/photo-1625246333195-78d9c38ad576?w=400&h=250&fit=crop',
+    'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=400&h=250&fit=crop',
+    'https://images.unsplash.com/photo-1464226184837-280ecc440399?w=400&h=250&fit=crop',
+  ]
+
+  // Use farmer hash to consistently select image
+  const imageIndex = farmer.id.charCodeAt(0) % farmImages.length
+  const farmImage = farmImages[imageIndex]
+
   return (
     <Card className="hover:shadow-xl transition overflow-hidden border-l-4 border-l-green-500">
+      <div className="w-full h-40 overflow-hidden bg-gray-200">
+        <img
+          src={farmImage}
+          alt={farmer.business_name}
+          className="w-full h-full object-cover hover:scale-105 transition duration-300"
+        />
+      </div>
+
       <CardHeader className="bg-green-50 pb-3">
         <div className="flex justify-between items-start">
           <div>
