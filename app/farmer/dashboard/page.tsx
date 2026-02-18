@@ -1,185 +1,309 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useAuth } from '@/context/AuthContext'
-import { useLanguage } from '@/context/LanguageContext'
-import { Navigation } from '@/components/Navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { supabase } from '@/lib/supabase'
-import type { Product } from '@/lib/supabase'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Trash2, Edit2, Plus } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
+import { supabase } from '@/lib/supabase'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Navigation } from '@/components/Navigation'
+import { TrendingUp, Plus, Package, ShoppingCart, AlertCircle, MapPin } from 'lucide-react'
 import Link from 'next/link'
+
+interface Product {
+  id: string
+  name: string
+  price: number
+  quantity: number
+  unit: string
+  expiry_date: string
+  is_expired: boolean
+}
+
+interface Order {
+  id: string
+  consumer_id: string
+  quantity: number
+  total_price: number
+  order_status: string
+  created_at: string
+}
 
 export default function FarmerDashboard() {
   const router = useRouter()
-  const { user, userType, loading: authLoading } = useAuth()
-  const { translate } = useLanguage()
-
+  const { user, userType, loading } = useAuth()
   const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-  const [farmerId, setFarmerId] = useState<string | null>(null)
+  const [orders, setOrders] = useState<Order[]>([])
+  const [farmProfile, setFarmProfile] = useState<any>(null)
+  const [stats, setStats] = useState({ totalProducts: 0, activeOrders: 0, revenue: 0 })
+  const [loadingData, setLoadingData] = useState(true)
 
   useEffect(() => {
-    if (!authLoading && (userType !== 'farmer' || !user)) {
-      router.push('/auth?type=farmer')
+    if (!loading && (!user || userType !== 'farmer')) {
+      router.push('/auth')
     }
-  }, [user, userType, authLoading, router])
+  }, [user, userType, loading, router])
 
   useEffect(() => {
-    if (user && userType === 'farmer') {
-      fetchFarmerData()
+    if (user) {
+      fetchFarmData()
     }
-  }, [user, userType])
+  }, [user])
 
-  const fetchFarmerData = async () => {
+  const fetchFarmData = async () => {
     try {
-      const { data: farmer, error: farmerError } = await supabase
+      // Get farm profile
+      const { data: farmer } = await supabase
         .from('farmers')
-        .select('id')
+        .select('*')
         .eq('user_id', user?.id)
         .single()
 
-      if (farmerError) throw farmerError
+      setFarmProfile(farmer)
 
-      setFarmerId(farmer.id)
-
-      const { data: productsData, error: productsError } = await supabase
+      // Get products
+      const { data: productsData } = await supabase
         .from('products')
         .select('*')
-        .eq('farmer_id', farmer.id)
+        .eq('farmer_id', farmer?.id)
         .order('created_at', { ascending: false })
 
-      if (productsError) throw productsError
-
       setProducts(productsData || [])
-    } catch (error) {
-      console.error('Error fetching farmer data:', error)
+
+      // Get orders for this farmer
+      const { data: ordersData } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('farmer_id', farmer?.id)
+        .order('created_at', { ascending: false })
+
+      setOrders(ordersData || [])
+
+      // Calculate stats
+      const activeOrders = (ordersData || []).filter(
+        (o) => o.order_status === 'pending' || o.order_status === 'confirmed'
+      ).length
+      const revenue = (ordersData || []).reduce((sum, o) => sum + o.total_price, 0)
+
+      setStats({
+        totalProducts: (productsData || []).length,
+        activeOrders,
+        revenue,
+      })
     } finally {
-      setLoading(false)
+      setLoadingData(false)
     }
   }
 
-  const handleDelete = async (productId: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return
-
-    try {
-      const { error } = await supabase.from('products').delete().eq('id', productId)
-
-      if (error) throw error
-
-      setProducts(products.filter((p) => p.id !== productId))
-    } catch (error) {
-      console.error('Error deleting product:', error)
-    }
-  }
-
-  if (authLoading || loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navigation />
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-green-600" />
-        </div>
-      </div>
-    )
-  }
+  if (loading) return null
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50">
       <Navigation />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">{translate('nav.myProducts')}</h1>
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-amber-600 to-green-600 text-white py-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <h1 className="text-4xl font-bold mb-2">🌾 Farmer Dashboard</h1>
+          <p className="text-green-100">Manage your farm, products, and orders</p>
+          {farmProfile && (
+            <p className="text-green-100 mt-2">📍 {farmProfile.business_name} • {farmProfile.city}, {farmProfile.state}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <Card className="border-l-4 border-l-green-600">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-600">Total Products</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-end gap-4">
+                <div className="text-4xl font-bold text-green-600">{stats.totalProducts}</div>
+                <Package className="w-8 h-8 text-green-400" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-blue-600">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-600">Active Orders</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-end gap-4">
+                <div className="text-4xl font-bold text-blue-600">{stats.activeOrders}</div>
+                <ShoppingCart className="w-8 h-8 text-blue-400" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-amber-600">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-600">Total Revenue</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-end gap-4">
+                <div className="text-4xl font-bold text-amber-600">₹{stats.revenue.toFixed(0)}</div>
+                <TrendingUp className="w-8 h-8 text-amber-400" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
           <Link href="/farmer/product/new">
-            <Button className="gap-2">
-              <Plus className="w-4 h-4" />
-              {translate('product.upload')}
-            </Button>
+            <Card className="hover:shadow-lg cursor-pointer transition hover:bg-green-50">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Plus className="w-5 h-5" />
+                  Add Product
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">List a new product for sale</p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/farmer/orders">
+            <Card className="hover:shadow-lg cursor-pointer transition hover:bg-blue-50">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <ShoppingCart className="w-5 h-5" />
+                  My Orders
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">View and manage orders</p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/farmer/profile">
+            <Card className="hover:shadow-lg cursor-pointer transition hover:bg-amber-50">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <MapPin className="w-5 h-5" />
+                  Farm Profile
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Update farm details & location</p>
+              </CardContent>
+            </Card>
           </Link>
         </div>
 
-        {products.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((product) => {
-              const expiryDate = new Date(product.expiration_date)
-              const today = new Date()
-              const daysUntilExpiry = Math.ceil(
-                (expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-              )
-              const isExpired = daysUntilExpiry < 0
+        {/* Products Section */}
+        <div className="mb-12">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-3xl font-bold text-gray-900">📦 Your Products ({products.length})</h2>
+            <Link href="/farmer/product/new">
+              <Button className="bg-green-600 hover:bg-green-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Add New Product
+              </Button>
+            </Link>
+          </div>
 
-              return (
-                <Card key={product.id} className="overflow-hidden hover:shadow-lg transition">
-                  {product.image_url && (
-                    <img
-                      src={product.image_url || "/placeholder.svg"}
-                      alt={product.name}
-                      className="w-full h-48 object-cover"
-                    />
-                  )}
-
-                  <CardHeader>
+          {products.length > 0 ? (
+            <div className="space-y-4">
+              {products.map((product) => (
+                <Card
+                  key={product.id}
+                  className={`${
+                    product.is_expired ? 'border-red-300 bg-red-50' : 'border-l-4 border-l-green-500'
+                  }`}
+                >
+                  <CardContent className="pt-6">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <CardTitle>{product.name}</CardTitle>
-                        <CardDescription>{product.category}</CardDescription>
+                        <h3 className="text-xl font-bold text-gray-900">{product.name}</h3>
+                        <div className="flex gap-6 mt-2 text-sm text-gray-600">
+                          <span>💰 ₹{product.price} per {product.unit}</span>
+                          <span>📦 {product.quantity} units available</span>
+                          <span>📅 Expires: {new Date(product.expiry_date).toLocaleDateString()}</span>
+                        </div>
                       </div>
-                      <span className="text-2xl font-bold text-green-600">₹{product.price}</span>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="space-y-3">
-                    <p className="text-sm text-gray-600">{product.description}</p>
-
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <p className="text-gray-600">{translate('product.quantity')}</p>
-                        <p className="font-semibold">
-                          {product.quantity_available} {product.unit}
-                        </p>
+                      <div className="text-right">
+                        {product.is_expired ? (
+                          <div className="flex items-center gap-1 text-red-600 font-bold">
+                            <AlertCircle className="w-4 h-4" />
+                            EXPIRED
+                          </div>
+                        ) : (
+                          <div className="text-green-600 font-bold">✓ Active</div>
+                        )}
                       </div>
-                      <div>
-                        <p className="text-gray-600">{translate('product.expiryDate')}</p>
-                        <p className={`font-semibold ${isExpired ? 'text-red-600' : ''}`}>
-                          {new Date(product.expiration_date).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 pt-3 border-t">
-                      <Link href={`/farmer/product/${product.id}/edit`} className="flex-1">
-                        <Button size="sm" variant="outline" className="w-full gap-2 bg-transparent">
-                          <Edit2 className="w-4 h-4" />
-                          {translate('common.edit')}
-                        </Button>
-                      </Link>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="flex-1 gap-2"
-                        onClick={() => handleDelete(product.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        {translate('common.delete')}
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>
-              )
-            })}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-600 text-lg mb-4">{translate('common.noData')}</p>
-            <Link href="/farmer/product/new">
-              <Button>{translate('product.upload')}</Button>
-            </Link>
-          </div>
-        )}
+              ))}
+            </div>
+          ) : (
+            <Card className="bg-gray-50">
+              <CardContent className="pt-6 text-center">
+                <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 mb-4">No products listed yet</p>
+                <Link href="/farmer/product/new">
+                  <Button className="bg-green-600 hover:bg-green-700">
+                    Add Your First Product
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Recent Orders */}
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">📋 Recent Orders ({orders.length})</h2>
+
+          {orders.length > 0 ? (
+            <div className="space-y-4">
+              {orders.slice(0, 5).map((order) => (
+                <Card key={order.id} className="border-l-4 border-l-blue-500">
+                  <CardContent className="pt-6">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-bold text-lg">Order #{order.id.slice(-6)}</p>
+                        <p className="text-sm text-gray-600">
+                          {order.quantity} units • ₹{order.total_price}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(order.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                            order.order_status === 'completed'
+                              ? 'bg-green-100 text-green-800'
+                              : order.order_status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-blue-100 text-blue-800'
+                          }`}
+                        >
+                          {order.order_status.charAt(0).toUpperCase() + order.order_status.slice(1)}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="bg-gray-50">
+              <CardContent className="pt-6 text-center">
+                <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No orders yet</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   )

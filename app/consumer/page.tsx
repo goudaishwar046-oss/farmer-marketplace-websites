@@ -1,124 +1,93 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useAuth } from '@/context/AuthContext'
-import { useLanguage } from '@/context/LanguageContext'
-import { Navigation } from '@/components/Navigation'
-import { ProductCard } from '@/components/ProductCard'
-import { supabase } from '@/lib/supabase'
-import type { Product } from '@/lib/supabase'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Input } from '@/components/ui/input'
+import { useAuth } from '@/context/AuthContext'
+import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Loader2, MapPin } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Navigation } from '@/components/Navigation'
+import { MapPin, Phone, Star, TrendingUp } from 'lucide-react'
+import Link from 'next/link'
 
-export default function ConsumerMarketplace() {
+interface Farmer {
+  id: string
+  business_name: string
+  phone: string
+  address: string
+  city: string
+  state: string
+  latitude: number
+  longitude: number
+  rating: number
+  total_reviews: number
+  verified: boolean
+}
+
+export default function ConsumerPage() {
   const router = useRouter()
-  const { user, loading: authLoading } = useAuth()
-  const { translate } = useLanguage()
-
-  const [products, setProducts] = useState<Product[]>([])
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('all')
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const { user, loading } = useAuth()
+  const [farmers, setFarmers] = useState<Farmer[]>([])
+  const [nearestFarmers, setNearestFarmers] = useState<Farmer[]>([])
+  const [deliveryOption, setDeliveryOption] = useState<'self' | 'delivery' | 'direct'>('delivery')
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [loadingFarmers, setLoadingFarmers] = useState(true)
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/auth?type=consumer')
+    if (!loading && !user) {
+      router.push('/auth')
     }
-  }, [user, authLoading, router])
+  }, [user, loading, router])
 
   useEffect(() => {
     // Get user location
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        setUserLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        })
-      })
-    }
-
-    fetchProducts()
-  }, [])
-
-  const fetchProducts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .select(
-          `
-          *,
-          farmer:farmers(*)
-        `
-        )
-        .gt('expiry_date', new Date().toISOString())
-        .order('created_at', { ascending: false })
-
-      if (error) {
-        console.error('Supabase products error:', error)
-        setProducts([])
-        setFilteredProducts([])
-        return
-      }
-
-      setProducts(data || [])
-      setFilteredProducts(data || [])
-    } catch (error) {
-      console.error('Error fetching products:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    let filtered = products
-
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (p) =>
-          p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          p.description.toLowerCase().includes(searchTerm.toLowerCase())
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          })
+        },
+        () => console.log('Location access denied')
       )
     }
 
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter((p) => p.category === selectedCategory)
-    }
+    // Fetch all farmers
+    fetchFarmers()
+  }, [])
 
-    // Sort by distance if location is available
-    if (userLocation && filtered.some((p) => p.farmer?.latitude)) {
-      filtered.sort((a, b) => {
-        const distA = calculateDistance(
-          userLocation.lat,
-          userLocation.lng,
-          a.farmer?.latitude || 0,
-          a.farmer?.longitude || 0
-        )
-        const distB = calculateDistance(
-          userLocation.lat,
-          userLocation.lng,
-          b.farmer?.latitude || 0,
-          b.farmer?.longitude || 0
-        )
-        return distA - distB
-      })
-    }
+  const fetchFarmers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('farmers')
+        .select('*')
+        .eq('verified', true)
+        .order('rating', { ascending: false })
 
-    setFilteredProducts(filtered)
-  }, [searchTerm, selectedCategory, products, userLocation])
+      if (error) {
+        console.error('Error fetching farmers:', error)
+        return
+      }
+
+      setFarmers(data || [])
+
+      // Find nearest farmers if location available
+      if (location) {
+        const sorted = (data || []).sort((a, b) => {
+          const distA = calculateDistance(location.lat, location.lng, a.latitude, a.longitude)
+          const distB = calculateDistance(location.lat, location.lng, b.latitude, b.longitude)
+          return distA - distB
+        })
+        setNearestFarmers(sorted.slice(0, 5))
+      }
+    } finally {
+      setLoadingFarmers(false)
+    }
+  }
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371
+    const R = 6371 // Earth's radius in km
     const dLat = ((lat2 - lat1) * Math.PI) / 180
     const dLon = ((lon2 - lon1) * Math.PI) / 180
     const a =
@@ -127,84 +96,217 @@ export default function ConsumerMarketplace() {
         Math.cos((lat2 * Math.PI) / 180) *
         Math.sin(dLon / 2) *
         Math.sin(dLon / 2)
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    return R * c
   }
 
-  const handleAddToCart = (product: Product) => {
-    router.push(`/consumer/order?productId=${product.id}`)
-  }
-
-  const categories = ['all', 'Vegetables', 'Fruits', 'Dairy', 'Grains', 'Other']
-
-  if (authLoading || loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navigation />
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-green-600" />
-        </div>
-      </div>
-    )
-  }
+  if (loading) return null
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
       <Navigation />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold mb-8">{translate('market.browse')}</h1>
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-green-600 to-green-700 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4">
+          <h1 className="text-4xl font-bold mb-2">Fresh From Farms, Straight to You!</h1>
+          <p className="text-green-100 text-xl mb-6">Buy directly from local farmers with 3 delivery options</p>
 
-        {/* Search and Filters */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <div className="space-y-4">
-            <div className="flex gap-4 flex-col md:flex-row">
-              <Input
-                placeholder={translate('market.searchPlaceholder')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1"
-              />
+          {/* Delivery Options */}
+          <div className="bg-white bg-opacity-10 backdrop-blur rounded-lg p-6 mb-8">
+            <h2 className="text-xl font-semibold mb-4">How Do You Want to Buy?</h2>
+            <div className="grid md:grid-cols-3 gap-4">
+              <button
+                onClick={() => setDeliveryOption('direct')}
+                className={`p-4 rounded-lg transition ${
+                  deliveryOption === 'direct'
+                    ? 'bg-white text-green-600'
+                    : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+                }`}
+              >
+                <div className="text-3xl mb-2">👤</div>
+                <div className="font-semibold">Direct Meet</div>
+                <div className="text-sm opacity-90">Meet farmer & buy in person</div>
+              </button>
 
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue placeholder={translate('market.filter')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat === 'all' ? 'All Categories' : cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <button
+                onClick={() => setDeliveryOption('self')}
+                className={`p-4 rounded-lg transition ${
+                  deliveryOption === 'self'
+                    ? 'bg-white text-green-600'
+                    : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+                }`}
+              >
+                <div className="text-3xl mb-2">🏠</div>
+                <div className="font-semibold">Pickup at Farm</div>
+                <div className="text-sm opacity-90">Order online, collect later</div>
+              </button>
+
+              <button
+                onClick={() => setDeliveryOption('delivery')}
+                className={`p-4 rounded-lg transition ${
+                  deliveryOption === 'delivery'
+                    ? 'bg-white text-green-600'
+                    : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+                }`}
+              >
+                <div className="text-3xl mb-2">🚚</div>
+                <div className="font-semibold">Home Delivery</div>
+                <div className="text-sm opacity-90">We deliver to your door</div>
+              </button>
             </div>
-
-            {userLocation && (
-              <div className="flex items-center gap-2 text-sm text-green-600">
-                <MapPin className="w-4 h-4" />
-                Using your location to sort by distance
-              </div>
-            )}
           </div>
+
+          {/* Location Info */}
+          {location && (
+            <div className="flex items-center text-green-100">
+              <MapPin className="w-5 h-5 mr-2" />
+              <span>📍 Your location detected - showing nearest farmers first</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        {/* Nearest Farmers */}
+        <div className="mb-12">
+          <div className="flex items-center mb-6">
+            <TrendingUp className="w-6 h-6 text-green-600 mr-3" />
+            <h2 className="text-3xl font-bold text-gray-900">🌍 Nearest Farmers To You</h2>
+            <span className="ml-auto text-lg font-semibold text-green-600">({nearestFarmers.length} found)</span>
+          </div>
+
+          {loadingFarmers ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600">Loading nearby farmers...</p>
+            </div>
+          ) : nearestFarmers.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {nearestFarmers.map((farmer) => (
+                <FarmerCard key={farmer.id} farmer={farmer} deliveryOption={deliveryOption} />
+              ))}
+            </div>
+          ) : (
+            <Card className="bg-yellow-50 border-yellow-200">
+              <CardContent className="pt-6">
+                <p className="text-yellow-800">📍 Enable location to see nearest farmers</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
-        {/* Products Grid */}
-        {filteredProducts.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={handleAddToCart}
-              />
-            ))}
+        {/* All Farmers */}
+        <div>
+          <div className="flex items-center mb-6">
+            <Star className="w-6 h-6 text-green-600 mr-3" />
+            <h2 className="text-3xl font-bold text-gray-900">⭐ Top Rated Farmers</h2>
+            <span className="ml-auto text-lg font-semibold text-green-600">({farmers.length})</span>
           </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-600 text-lg">{translate('common.noData')}</p>
-          </div>
-        )}
+
+          {farmers.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {farmers.map((farmer) => (
+                <FarmerCard key={farmer.id} farmer={farmer} deliveryOption={deliveryOption} />
+              ))}
+            </div>
+          ) : (
+            <Card className="bg-gray-50">
+              <CardContent className="pt-6">
+                <p className="text-gray-600">No farmers available yet.</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-gray-100 py-12">
+        <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-3 gap-6">
+          <Link href="/consumer/orders">
+            <Card className="hover:shadow-lg cursor-pointer transition hover:bg-green-50">
+              <CardHeader>
+                <CardTitle className="text-lg">📦 My Orders</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Track your orders & delivery status</p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/consumer/map">
+            <Card className="hover:shadow-lg cursor-pointer transition hover:bg-green-50">
+              <CardHeader>
+                <CardTitle className="text-lg">🗺️ Farmer Map</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">See all farms on interactive map</p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/consumer/profile">
+            <Card className="hover:shadow-lg cursor-pointer transition hover:bg-green-50">
+              <CardHeader>
+                <CardTitle className="text-lg">👤 My Profile</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Manage addresses & preferences</p>
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
       </div>
     </div>
+  )
+}
+
+function FarmerCard({
+  farmer,
+  deliveryOption,
+}: {
+  farmer: Farmer
+  deliveryOption: 'self' | 'delivery' | 'direct'
+}) {
+  return (
+    <Card className="hover:shadow-xl transition overflow-hidden border-l-4 border-l-green-500">
+      <CardHeader className="bg-green-50 pb-3">
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="text-xl">{farmer.business_name}</CardTitle>
+            <p className="text-sm text-gray-600 mt-1">📍 {farmer.city}, {farmer.state}</p>
+          </div>
+          {farmer.verified && <span className="text-green-600 text-2xl">✅</span>}
+        </div>
+      </CardHeader>
+
+      <CardContent className="pt-6">
+        {/* Rating */}
+        <div className="flex items-center mb-4 bg-yellow-50 p-2 rounded">
+          <Star className="w-5 h-5 text-yellow-500 mr-2" />
+          <span className="font-bold">{farmer.rating.toFixed(1)}/5</span>
+          <span className="text-gray-600 ml-2">({farmer.total_reviews})</span>
+        </div>
+
+        {/* Contact */}
+        <div className="flex items-center text-gray-700 mb-3">
+          <Phone className="w-4 h-4 mr-2 text-green-600" />
+          <span className="text-sm font-mono">{farmer.phone}</span>
+        </div>
+
+        {/* Address */}
+        <div className="flex items-start text-gray-700 mb-4">
+          <MapPin className="w-4 h-4 mr-2 mt-1 flex-shrink-0 text-green-600" />
+          <span className="text-sm">{farmer.address}</span>
+        </div>
+
+        {/* Action Button */}
+        <Button className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-2">
+          {deliveryOption === 'direct' && '📍 View Location & Contact'}
+          {deliveryOption === 'self' && '📦 Order for Pickup'}
+          {deliveryOption === 'delivery' && '🚚 Order with Delivery'}
+        </Button>
+      </CardContent>
+    </Card>
   )
 }

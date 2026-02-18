@@ -23,7 +23,7 @@ export default function DashboardRedirectPage() {
     if (userType === 'farmer') {
       router.push('/farmer/dashboard')
     } else if (userType === 'delivery') {
-      router.push('/delivery')
+      router.push('/delivery-boy')
     } else {
       // default to consumer
       router.push('/consumer')
