@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import Image from 'next/image'
+
 import { Button } from '@/components/ui/button'
 import { Navigation } from '@/components/Navigation'
 import { Leaf, MapPin, Users, Truck } from 'lucide-react'
@@ -40,17 +40,7 @@ export default function Home() {
               </Link>
             </div>
           </div>
-          <div className="hidden md:block">
-            <div className="relative w-full h-96 rounded-lg shadow-xl overflow-hidden">
-              <Image
-                src="https://images.unsplash.com/photo-1488459716781-8f52f7f3bef0?w=1200&h=900&fit=crop"
-                alt="Fresh farmers market"
-                fill
-                priority
-                className="object-cover"
-              />
-            </div>
-          </div>
+          
         </div>
       </section>
 
@@ -79,12 +69,7 @@ export default function Home() {
         <h2 className="text-3xl font-bold text-center mb-12">Why Choose FarmBridge?</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="text-center">
-            <div className="relative w-full h-40 rounded-lg mb-4 overflow-hidden shadow-sm">
-              <Image src="https://images.unsplash.com/photo-1464226184837-280ecc440399?w=600&h=400&fit=crop" alt="Fresh organic" fill className="object-cover" />
-            </div>
-            <div className="flex justify-center mb-2">
-              <Leaf className="w-12 h-12 text-green-600" />
-            </div>
+            
             <h3 className="font-semibold mb-2">Fresh & Organic</h3>
             <p className="text-gray-600 text-sm">
               Get farm-fresh produce directly from local farmers
@@ -92,9 +77,7 @@ export default function Home() {
           </div>
 
           <div className="text-center">
-            <div className="relative w-full h-40 rounded-lg mb-4 overflow-hidden shadow-sm">
-              <Image src="https://images.unsplash.com/photo-1586771107919-12ac45474938?w=600&h=400&fit=crop" alt="Farm location" fill className="object-cover" />
-            </div>
+            
             <div className="flex justify-center mb-2">
               <MapPin className="w-12 h-12 text-green-600" />
             </div>
@@ -105,9 +88,7 @@ export default function Home() {
           </div>
 
           <div className="text-center">
-            <div className="relative w-full h-40 rounded-lg mb-4 overflow-hidden shadow-sm">
-              <Image src="https://images.unsplash.com/photo-1557804506-669714d2e9d8?w=600&h=400&fit=crop" alt="Fair prices" fill className="object-cover" />
-            </div>
+            
             <div className="flex justify-center mb-2">
               <Users className="w-12 h-12 text-green-600" />
             </div>
@@ -118,9 +99,7 @@ export default function Home() {
           </div>
 
           <div className="text-center">
-            <div className="relative w-full h-40 rounded-lg mb-4 overflow-hidden shadow-sm">
-              <Image src="https://images.unsplash.com/photo-1633117064589-cf94d64b2f01?w=600&h=400&fit=crop" alt="Fast delivery" fill className="object-cover" />
-            </div>
+            
             <div className="flex justify-center mb-2">
               <Truck className="w-12 h-12 text-green-600" />
             </div>
