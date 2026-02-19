@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Navigation } from '@/components/Navigation'
 import { MapPin, Check, X, TrendingUp, Package, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface Order {
   id: string
@@ -224,8 +225,14 @@ export default function DeliveryDashboard() {
                 const imageIndex = farmer.id.charCodeAt(0) % farmImages.length
                 return (
                   <Card key={farmer.id} className="border-l-4 border-l-green-500 hover:shadow-lg transition overflow-hidden">
-                    <div className="w-full h-40 overflow-hidden">
-                      <img src={farmImages[imageIndex]} alt={farmer.business_name} className="w-full h-full object-cover" />
+                    <div className="relative w-full h-40 overflow-hidden">
+                      <Image
+                        src={farmImages[imageIndex]}
+                        alt={farmer.business_name}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
                     </div>
                     <CardContent className="pt-6">
                       <h3 className="text-xl font-bold text-gray-900 mb-3">{farmer.business_name}</h3>

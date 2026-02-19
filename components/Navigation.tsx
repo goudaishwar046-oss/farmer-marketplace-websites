@@ -42,11 +42,23 @@ export function Navigation() {
         ]
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
+    <nav className="bg-white/80 backdrop-blur-sm shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link href="/" className="font-bold text-xl text-green-600">
-            FarmBridge
+          <Link href="/" className="flex items-center gap-3">
+            {/* Simple farm symbol SVG */}
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+              <defs>
+                <linearGradient id="g1" x1="0" x2="1">
+                  <stop offset="0%" stopColor="#16a34a" />
+                  <stop offset="100%" stopColor="#059669" />
+                </linearGradient>
+              </defs>
+              <circle cx="12" cy="12" r="11" fill="url(#g1)" opacity="0.08" />
+              <path d="M6 14C6 10 9 7 12 7C15 7 18 10 18 14" stroke="url(#g1)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M12 7V4" stroke="url(#g1)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="font-bold text-xl text-gradient-to-r from-green-600 to-emerald-500">FarmBridge</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -82,14 +94,42 @@ export function Navigation() {
             </Select>
 
             {user ? (
-              <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2">
-                <LogOut className="w-4 h-4" />
-                {translate('nav.logout')}
-              </Button>
+              <>
+                {/* Quick actions tailored to user type */}
+                <div className="hidden sm:flex items-center gap-2">
+                  {userType === 'farmer' && (
+                    <>
+                      <Link href="/farmer/product/new" className="text-sm text-gray-700 hover:text-green-600">Add Product</Link>
+                      <Link href="/farmer/orders" className="text-sm text-gray-700 hover:text-green-600">Orders</Link>
+                    </>
+                  )}
+                  {userType === 'consumer' && (
+                    <>
+                      <Link href="/consumer" className="text-sm text-gray-700 hover:text-green-600">Marketplace</Link>
+                      <Link href="/consumer/orders" className="text-sm text-gray-700 hover:text-green-600">My Orders</Link>
+                    </>
+                  )}
+                  {userType === 'delivery' && (
+                    <>
+                      <Link href="/delivery-boy" className="text-sm text-gray-700 hover:text-green-600">Deliveries</Link>
+                      <Link href="/delivery-boy" className="text-sm text-gray-700 hover:text-green-600">Profile</Link>
+                    </>
+                  )}
+                </div>
+                <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2">
+                  <LogOut className="w-4 h-4" />
+                  {translate('nav.logout')}
+                </Button>
+              </>
             ) : (
-              <Button onClick={() => router.push('/auth')} size="sm">
-                Login
-              </Button>
+              <>
+                <Link href="/auth" className="inline-block">
+                  <Button size="sm" className="bg-gradient-to-r from-green-600 to-emerald-500 text-white">Login</Button>
+                </Link>
+                <Link href="/auth?signup=1" className="inline-block">
+                  <Button size="sm" variant="outline">Register</Button>
+                </Link>
+              </>
             )}
 
             {/* Mobile Menu Button */}
